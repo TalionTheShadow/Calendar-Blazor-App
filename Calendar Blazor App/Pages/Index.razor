@@ -1,0 +1,139 @@
+﻿@page "/"
+
+<h1>Danish Anniversaries Calendar</h1>
+
+<div class="calendar">
+    <div class="header">
+        <button @onclick="ShowPreviousMonth">&lt;</button>
+        <h2>@currentMonth.ToString("MMMM yyyy")</h2>
+        <button @onclick="ShowNextMonth">&gt;</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                @foreach (var dayOfWeek in Enumerable.Range(0, 7).Select(i => startDate.AddDays(i)))
+                {
+                    <th>@dayOfWeek.ToString("ddd")</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var week in calendarWeeks)
+            {
+                <tr>
+                    @foreach (var day in week)
+                    {
+                        <td>
+                            @if (day != DateTime.MinValue)
+                            {
+                                <div class="day">
+                                    <span>@day.Day</span>
+                                    @foreach (var anniversary in GetAnniversariesForDay(day))
+                                    {
+                                        <div>@anniversary</div>
+                                    }
+                                </div>
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private DateTime currentMonth = DateTime.Today;
+    private DateTime startDate;
+    private List<List<DateTime>> calendarWeeks = new List<List<DateTime>>();
+
+    private List<(DateTime, string)> danishAnniversaries = new List<(DateTime, string)>
+    {
+        (new DateTime(DateTime.Now.Year, 1, 28), "Databeskyttelsesdagen"),
+        (new DateTime(DateTime.Now.Year, 3, 8), "Kvindernes internationale kampdag"),
+        (new DateTime(DateTime.Now.Year, 5, 1), "Arbejdernes internationale kampdag"),
+        (new DateTime(DateTime.Now.Year, 5, 5), "Danmarks befrielse"),
+        // Add more anniversaries here
+    };
+
+    private List<string> GetAnniversariesForDay(DateTime day)
+    {
+        return danishAnniversaries
+            .Where(a => a.Item1.Date == day.Date)
+            .Select(a => a.Item2)
+            .ToList();
+    }
+
+    private void ShowPreviousMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+        GenerateCalendar();
+    }
+
+    private void ShowNextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+        GenerateCalendar();
+    }
+
+    private void GenerateCalendar()
+    {
+        startDate = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(-1);
+        calendarWeeks = new List<List<DateTime>>();
+
+        var currentDay = startDate;
+        var currentWeek = new List<DateTime>();
+        while (currentDay <= endDate)
+        {
+            currentWeek.Add(currentDay);
+            if (currentDay.DayOfWeek == DayOfWeek.Saturday)
+            {
+                calendarWeeks.Add(currentWeek);
+                currentWeek = new List<DateTime>();
+            }
+            currentDay = currentDay.AddDays(1);
+        }
+
+        if (currentWeek.Any())
+        {
+            calendarWeeks.Add(currentWeek);
+        }
+    }
+}
+
+<style>
+    .calendar {
+        text-align: center;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid #ccc;
+        padding: 8px;
+    }
+
+    .day {
+        position: relative;
+    }
+
+        .day span {
+            font-weight: bold;
+        }
+
+        .day div {
+            margin-top: 4px;
+            font-size: 14px;
+        }
+</style>
