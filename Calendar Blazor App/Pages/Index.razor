@@ -1,6 +1,6 @@
 ﻿@page "/"
 
-<h1>Danish Anniversaries Calendar</h1>
+<h1>Simple Anniversary Calendar</h1>
 
 <div class="calendar">
     <div class="header">
@@ -8,6 +8,7 @@
         <h2>@currentMonth.ToString("MMMM yyyy")</h2>
         <button @onclick="ShowNextMonth">&gt;</button>
     </div>
+
     <table>
         <thead>
             <tr>
@@ -28,10 +29,12 @@
                             {
                                 <div class="day">
                                     <span>@day.Day</span>
-                                    @foreach (var anniversary in GetAnniversariesForDay(day))
-                                    {
-                                        <div>@anniversary</div>
-                                    }
+                                    <ul>
+                                        @foreach (var anniversary in GetAnniversariesForDay(day))
+                                        {
+                                            <li>@anniversary</li>
+                                        }
+                                    </ul>
                                 </div>
                             }
                         </td>
@@ -47,20 +50,21 @@
     private DateTime startDate;
     private List<List<DateTime>> calendarWeeks = new List<List<DateTime>>();
 
-    private List<(DateTime, string)> danishAnniversaries = new List<(DateTime, string)>
-    {
-        (new DateTime(DateTime.Now.Year, 1, 28), "Databeskyttelsesdagen"),
-        (new DateTime(DateTime.Now.Year, 3, 8), "Kvindernes internationale kampdag"),
-        (new DateTime(DateTime.Now.Year, 5, 1), "Arbejdernes internationale kampdag"),
-        (new DateTime(DateTime.Now.Year, 5, 5), "Danmarks befrielse"),
-        // Add more anniversaries here
-    };
+    private Dictionary<string, string> danishAnniversaries = new Dictionary<string, string>
+        {
+            ["Databeskyttelsesdagen"] = "28. januar",
+            ["Kvindernes internationale kampdag"] = "8. marts",
+            ["Arbejdernes internationale kampdag"] = "1. maj",
+            ["Danmarks befrielse"] = "5. maj",
+            ["Mors dag (anden sÃ¸ndag i maj)"] = "9. maj",
+            // Add more anniversaries here
+        };
 
     private List<string> GetAnniversariesForDay(DateTime day)
     {
         return danishAnniversaries
-            .Where(a => a.Item1.Date == day.Date)
-            .Select(a => a.Item2)
+            .Where(a => a.Key.ToLowerInvariant().Contains(day.ToString("MMMM").ToLowerInvariant()))
+            .Select(a => a.Value)
             .ToList();
     }
 
@@ -105,6 +109,8 @@
 <style>
     .calendar {
         text-align: center;
+        font-size: 16px;
+        margin-top: 20px;
     }
 
     .header {
@@ -114,14 +120,17 @@
     }
 
     table {
-        width: 100%;
         border-collapse: collapse;
+        width: 100%;
     }
 
-    th,
-    td {
+    th, td {
         border: 1px solid #ccc;
         padding: 8px;
+    }
+
+    th {
+        background-color: #f2f2f2;
     }
 
     .day {
@@ -132,8 +141,14 @@
             font-weight: bold;
         }
 
-        .day div {
-            margin-top: 4px;
-            font-size: 14px;
-        }
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    li {
+        font-size: 14px;
+        margin-top: 2px;
+    }
 </style>
